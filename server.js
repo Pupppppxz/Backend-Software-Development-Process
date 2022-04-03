@@ -5,16 +5,10 @@ const Router = require("./src/routes.js");
 const dotenv = require("dotenv");
 const morgan = require("morgan");
 
-var {fomatConsol} = require("./src/middleware.js");
+var { fomatConsol } = require("./src/middleware.js");
 const rfs = require("rotating-file-stream");
 const path = require("path");
 const moment = require("moment");
-
-
-
-
-
-
 
 dotenv.config();
 
@@ -39,7 +33,7 @@ var accessLogStream = rfs.createStream(
   }
 );
 
-app.use(morgan(fomatConsol,{ stream: accessLogStream }))
+app.use(morgan(fomatConsol, { stream: accessLogStream }))
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
