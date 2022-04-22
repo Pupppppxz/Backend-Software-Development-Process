@@ -19,6 +19,7 @@ const UserSchema = new mongoose.Schema(
       required: true,
       trim: true,
       maxlength: 30,
+      lowercase: true
     },
     password: {
       type: String,
@@ -32,7 +33,7 @@ const UserSchema = new mongoose.Schema(
       enum: ["admin", "owner", "customer"],
       default: "customer"
     },
-    sex: {
+    gender: {
       type: String,
       required: true,
       enum: ["male", "female"],
@@ -43,6 +44,10 @@ const UserSchema = new mongoose.Schema(
       maxlength: 10,
     },
     forgotPassword: {
+      type: String,
+      default: ""
+    },
+    token: {
       type: String,
       default: ""
     }

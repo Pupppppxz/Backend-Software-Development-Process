@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const ApartmentSchema = new mongoose.Schema(
   {
-    owner: {
+    ownerId: {
       type: mongoose.Types.ObjectId,
       required: true,
     },
@@ -24,25 +24,43 @@ const ApartmentSchema = new mongoose.Schema(
     },
     numberOfRoom: {
       type: Number,
-      required: true,
-    },
-    notAvailable: {
-      type: Number,
-      required: true,
+      default: 0
     },
     available: {
       type: Number,
-      required: true,
+      default: 0
     },
-    airRoom: {
+    rentalFeeMin: {
       type: Number,
-      required: true,
+      default: 0
     },
-    fanRoom: {
+    rentalFeeMax: {
       type: Number,
-      required: true,
+      default: 0
     },
-    soi: {
+    dormitoryType: {
+      type: String,
+      enum: ["male", "female", "both"],
+      required: true
+    },
+    contact: {
+      type: String,
+      required: true,
+      maxlength: 10
+    },
+    imgAptSrc: {
+      type: String,
+      required: true
+    },
+    option: {
+      internet: Boolean,
+      cctv: Boolean,
+      keyCard: Boolean,
+      laundry: Boolean,
+      carPark: Boolean,
+      coinWashingMachine: Boolean
+    },
+    alley: {
       type: String,
       required: true,
     },

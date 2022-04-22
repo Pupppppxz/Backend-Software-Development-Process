@@ -1,18 +1,27 @@
-const mongoose = require("mongoose");
-const { ApartmentModel } = require("../models/");
-const { checkIsExist, validateApartment } = require("../services/apartment.js");
+const { ApartmentModel } = require("../models");
+const { checkIsExist, validateApartment, deleteApartmentImage, updateApartmentSave } = require("../services/apartment.js");
+const { findRoomByApartmentId } = require("../services/room")
 
 const createController = async (req, res) => {
   try {
-    if (req.user.role !== "owner") {
-      return res.status(400).json({ message: "Cannot create apartment" });
+    const { role, id, phone } = req.user
+    const { internet, cctv, keyCard, laundry, carPark, coinWashingMachine, ...newObj } = req.body
+    if (role !== "owner") {
+      return res.status(401).json({ message: "Cannot create apartment" });
     }
-    const isExist = await checkIsExist(req.body.name);
+    console.log("file = ", req.file)
+    console.log("body = ", req.body)
+    const isExist = await checkIsExist(newObj.name);
     if (isExist) {
       return res.status(400).json({ message: "apartment already exist" });
     }
-    req.body.owner = req.user.id;
-    const newApartment = new ApartmentModel({ ...req.body });
+    newObj.ownerId = id;
+    newObj.option = {
+      internet, cctv, keyCard, laundry, carPark, coinWashingMachine
+    }
+    newObj.contact = phone
+    newObj.imgAptSrc = "apartments/" + req.file.filename
+    const newApartment = new ApartmentModel({ ...newObj });
     newApartment
       .save()
       .then(() => res.status(201).json({ message: "Created!" }))
@@ -22,7 +31,7 @@ const createController = async (req, res) => {
       });
   } catch (err) {
     console.log(err);
-    return res.status(400).json({ message: "Cannot create apartment" });
+    return res.status(500).json({ message: "Something went wrong" });
   }
 };
 
@@ -34,38 +43,35 @@ const updateController = async (req, res) => {
       req.user.role
     );
     if (!validate) {
-      return res.status(400).json({ message: "Cannot update apartment" });
+      return res.status(401).json({ message: "Cannot access" });
     }
-    const { id, ...newObj } = req.body;
-    const updated = await ApartmentModel.findByIdAndUpdate(id, { ...newObj });
+    const update = await updateApartmentSave(req.body)
+    if (!update) {
+      return res.status(400).json({ message: "Error while update!" });
+    }
     return res.status(204).json({ message: "Updated!" });
   } catch (err) {
     console.log(err);
-    return res.status(400).json({ message: "Cannot update apartment" });
+    return res.status(500).json({ message: "Something went wrong" });
   }
 };
 
-const getByNameController = async (req, res) => {
+const updateImageController = async (req, res) => {
   try {
-    const apartment = await ApartmentModel.findOne({ name: req.params.name });
-    const { _id, ...newObj } = apartment;
-    return res.status(200).send(newObj);
-  } catch (e) {
-    console.log(e);
-    return res.status(400).json({ message: "Cannot get apartment" });
-  }
-};
-
-const getAllController = async (req, res) => {
-  try {
-    if (req.user.role !== "owner") {
-      return res.status(400).json({ message: "Cannot get apartment" });
+    const validate = await validateApartment(
+      req.body.id,
+      req.user.id,
+      req.user.role
+    );
+    if (!validate) {
+      return res.status(401).json({ message: "Cannot access" });
     }
-    const apartments = await ApartmentModel.find({ owner: req.user.id });
-    return res.status(200).send(apartments);
-  } catch (e) {
-    console.log(e);
-    return res.status(400).json({ message: "Cannot get apartment" });
+    await deleteApartmentImage(validate.imgAptSrc)
+    await ApartmentModel.findByIdAndUpdate(req.body.id, { imgAptSrc: "apartments/" + req.file.filename });
+    return res.status(204).json({ message: "Updated!" });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ message: "Something went wrong" });
   }
 };
 
@@ -77,20 +83,105 @@ const deleteController = async (req, res) => {
       req.user.role
     );
     if (!validate) {
-      return res.status(400).json({ message: "Cannot update apartment" });
+      return res.status(400).json({ message: "Cannot delete apartment" });
     }
-    const deleted = await ApartmentModel.findByIdAndDelete(req.body.id);
-    return res.status(204).json({ message: "Updated!" });
+    await deleteApartmentImage(validate.imgAptSrc)
+    await ApartmentModel.findByIdAndDelete(req.body.id);
+    return res.status(200).json({ message: "Delete!" });
   } catch (e) {
     console.log(e);
-    return res.status(400).json({ message: "Cannot delete apartment" });
+    return res.status(500).json({ message: "Something went wrong" });
   }
 };
+
+const getOwnerApartment = async (req, res) => {
+  try {
+    if (req.user.role !== "owner") {
+      return res.status(400).json({ message: "Cannot get apartment" });
+    }
+    const apartments = await ApartmentModel.find({ ownerId: req.user.id });
+    return res.status(200).send(apartments);
+  } catch (e) {
+    console.log(e);
+    return res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
+const getOwnerApartmentAndRoom = async (req, res) => {
+  try {
+    if (req.user.role !== "owner") {
+      return res.status(400).json({ message: "Cannot get apartment" });
+    }
+    const apartments = await ApartmentModel.find({ ownerId: req.user.id });
+    let apartmentsWithRoom = []
+    for (let index = 0; index < apartments.length; index++) {
+      const rooms = await findRoomByApartmentId(apartments[index]._doc._id)
+      const obj = {
+        ...apartments[index]._doc,
+        rooms
+      }
+      apartmentsWithRoom.push(obj)
+    }
+    return res.status(200).send(apartmentsWithRoom);
+  } catch (e) {
+    console.log(e);
+    return res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
+const getByNameController = async (req, res) => {
+  try {
+    const apartment = await ApartmentModel.findOne({ name: req.params.name });
+    const { ...newObj } = apartment._doc;
+    const rooms = await findRoomByApartmentId(newObj._id)
+    newObj.rooms = rooms
+    return res.status(200).send(newObj);
+  } catch (e) {
+    console.log(e);
+    return res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
+const getByIdController = async (req, res) => {
+  try {
+    const apartment = await ApartmentModel.findOne({ _id: req.params.id });
+    const { ...newObj } = apartment._doc;
+    const rooms = await findRoomByApartmentId(newObj._id)
+    newObj.rooms = rooms
+    return res.status(200).send(newObj);
+  } catch (e) {
+    console.log(e);
+    return res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
+const getAllController = async (req, res) => {
+  try {
+    const allApartments = await ApartmentModel.find({})
+    let allApartmentsWithRoom = []
+    for (let index = 0; index < allApartments.length; index++) {
+      const rooms = await findRoomByApartmentId(allApartments[index]._doc._id)
+      const obj = {
+        ...allApartments[index]._doc,
+        rooms
+      }
+      allApartmentsWithRoom.push(obj)
+    }
+    return res.status(200).send(allApartmentsWithRoom)
+  } catch (e) {
+    console.log(e);
+    return res.status(500).json({ message: "Something went wrong" });
+  }
+}
 
 module.exports = {
   createController,
   updateController,
   deleteController,
   getByNameController,
+  getOwnerApartment,
+  getByIdController,
+  getOwnerApartmentAndRoom,
   getAllController,
+  updateImageController
 };

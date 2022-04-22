@@ -1,34 +1,69 @@
 const express = require("express");
 
+const { validateJWT, singleImageUpload, uploadArrayImage, singlePdfUpload } = require("./middleware")
+
 const Router = express.Router();
 const AuthController = require("./controllers/auth.js");
 const ApartmentController = require("./controllers/apartment.js");
+const RoomController = require("./controllers/room")
+const ReviewController = require("./controllers/review")
+const NotificationController = require("./controllers/notification")
+const UserController = require("./controllers/user")
+const OwnerController = require("./controllers/owner")
 
 Router.get("/", (req, res) =>
   res
-    .send("Hello guys, this is software development process project !")
+    .send("Hello guys, this is backend for software development process project !")
     .status(200)
 );
 
 // authentication
-Router.post("/login", (req, res) => AuthController.login(req, res));
-Router.post("/register", (req, res) => AuthController.register(req, res));
+Router.post("/login", AuthController.login);
+Router.post("/register", AuthController.register);
 
-// apartment
-Router.post("/apmnt", (req, res) =>
-  ApartmentController.createController(req, res)
-);
-Router.get("/apmnt-name", (req, res) =>
-  ApartmentController.getByNameController(req, res)
-);
-Router.get("/apmnt-all", (req, res) =>
-  ApartmentController.getAllController(req, res)
-);
-Router.put("/apmnt", (req, res) =>
-  ApartmentController.updateController(req, res)
-);
-Router.delete("/apmnt", (req, res) =>
-  ApartmentController.deleteController(req, res)
-);
+// user
+Router.get("/user", validateJWT, UserController.getUserById)
+Router.put("/user", validateJWT, UserController.updateUserDetail)
+Router.put("/password", validateJWT, UserController.updatePassword)
+
+// apartment -- owner
+Router.post("/apmnt", validateJWT, singleImageUpload, ApartmentController.createController);
+Router.put("/apmnt", validateJWT, ApartmentController.updateController);
+Router.delete("/apmnt", validateJWT, ApartmentController.deleteController);
+Router.get("/apmnt-owner", validateJWT, ApartmentController.getOwnerApartment);
+Router.get("/apmnt-owner-room", validateJWT, ApartmentController.getOwnerApartmentAndRoom);
+
+// apartment -- user
+Router.get("/apmnt-name/:name", validateJWT, ApartmentController.getByNameController);
+Router.get("/apmnt-id/:id", validateJWT, ApartmentController.getByIdController);
+Router.get("/apmnt-all", validateJWT, ApartmentController.getAllController);
+
+// room -- owner
+Router.post("/room", validateJWT, uploadArrayImage, RoomController.createRoomTypeController)
+Router.put("/room", validateJWT, RoomController.updateRoomTypeController)
+Router.delete("/room", validateJWT, RoomController.deleteRoomTypeController)
+Router.put("/room", validateJWT, uploadArrayImage, RoomController.updateRoomImageController)
+Router.post("/room-insert", validateJWT, RoomController.insertRoomController)
+Router.delete("/room-delete", validateJWT, RoomController.deleteRoomController)
+Router.put("/room-update", validateJWT, RoomController.updateAvailableRoomController)
+
+// review
+Router.post("/review", validateJWT, ReviewController.createReview)
+Router.get("/review/:apartmentId", validateJWT, ReviewController.getReviewByApartmentId)
+Router.delete("/review", validateJWT, ReviewController.deleteReview)
+Router.put("/review", validateJWT, ReviewController.updateReview)
+Router.get("review-all", validateJWT, ReviewController.getAllReview)
+
+Router.get("/noti-admin", validateJWT, NotificationController.getAllNotification)
+Router.post("/noti-owner", validateJWT, NotificationController.getAllNotificationByOwnerId)
+Router.post("/noti-new", validateJWT, NotificationController.createNewOfferTime)
+Router.post("/noti-reply", validateJWT, NotificationController.createReplyMessage)
+Router.post("/noti-offer", validateJWT, NotificationController.createNewOfferTime)
+
+// request to owner
+Router.post("/owner", validateJWT, OwnerController.requestToBeOwner)
+Router.put("/owner", validateJWT, singlePdfUpload, OwnerController.ownerUploadPdf)
+Router.put("/owner-approve", validateJWT, OwnerController.approveOwner)
+Router.post("/owner-remove", validateJWT, OwnerController.removeOwner)
 
 module.exports = Router;

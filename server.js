@@ -5,14 +5,12 @@ const Router = require("./src/routes.js");
 const dotenv = require("dotenv");
 const morgan = require("morgan");
 
-var { fomatConsol } = require("./src/middleware.js");
-const rfs = require("rotating-file-stream");
-const path = require("path");
-const moment = require("moment");
+var { formatConsole, accessControl, accessLogStream } = require("./src/middleware.js");
 
 dotenv.config();
 
 mongoose
+  // eslint-disable-next-line no-undef
   .connect(process.env.URI, {
     useNewUrlParser: true,
   })
@@ -25,19 +23,17 @@ mongoose
 
 const app = express();
 
-var accessLogStream = rfs.createStream(
-  `access - ${moment().format("ll")}.log`,
-  {
-    interval: "1d", // rotate daily
-    path: path.join(__dirname, "log"),
-  }
-);
 
-app.use(morgan(fomatConsol, { stream: accessLogStream }))
+app.use(morgan(formatConsole, { stream: accessLogStream }))
 app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: false }));
+app.use(express.static('uploads/'));
+app.use(accessControl);
+// eslint-disable-next-line no-undef
+app.use('/apartments', express.static(__dirname + '/apartments/'));
 app.use("/api", Router);
+// eslint-disable-next-line no-undef
 app.listen(parseInt(process.env.PORT), () => {
   console.log("Sever started");
 });

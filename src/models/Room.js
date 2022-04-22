@@ -2,52 +2,75 @@ const mongoose = require("mongoose");
 
 const RoomSchema = new mongoose.Schema(
   {
-    owner: {
+    ownerId: {
       type: mongoose.Types.ObjectId,
       required: true,
     },
-    apartment: {
+    apartmentId: {
       type: mongoose.Types.ObjectId,
       required: true,
     },
-    room: {
+    room: [{
+      roomNumber: {
+        type: String,
+        required: true,
+      },
+      available: {
+        type: Boolean,
+        default: true
+      }
+    }],
+    nameType: {
       type: String,
       required: true,
     },
-    floor: {
+    roomOption: {
+      air: Boolean,
+      refrigerator: Boolean,
+      fan: Boolean,
+      television: Boolean,
+      waterHeater: Boolean,
+      washingMachine: Boolean,
+      cookingStove: Boolean,
+    },
+    contract: {
+      leaseAgreement: {
+        type: Number,
+        default: 1
+      },
+      cashPledge: {
+        type: Number,
+        default: 10000
+      }
+    },
+    numOfRoomTotal: {
       type: Number,
-      required: true,
-      default: 0,
+      default: 0
     },
-    class: {
-      type: String,
-      enum: ["air", "fan", "studio"],
-      required: true,
+    electricCost: {
+      type: Number,
+      default: 8
     },
-    optionBuildIn: {
-      type: Array,
-      default: [],
+    waterCost: {
+      type: Number,
+      default: 18
     },
-    optionInRoom: {
-      type: Array,
-      default: [],
+    rating: {
+      type: Number,
+      default: null
     },
     price: {
-      type: String,
+      type: Number,
       required: true,
     },
-    size: {
-      type: String,
+    area: {
+      type: Number,
       required: true,
     },
-    isAvailable: {
-      type: Boolean,
-      default: true,
-    },
-    roomImage: {
-      type: mongoose.Types.ObjectId,
-      required: true,
-    },
+    img: [{
+      id: Number,
+      src: String
+    }],
   },
   {
     timestamps: true,
