@@ -1,5 +1,5 @@
 const { OwnerModel } = require("../models")
-const { checkIsOwnerExist, updateToOwner } = require("../services/owner")
+const { checkIsOwnerExist, updateToOwner, deletePdf, deletePdfArray } = require("../services/owner")
 
 const requestToBeOwner = async (req, res) => {
     try {
@@ -41,15 +41,27 @@ const ownerUploadPdf = async (req, res) => {
         const pdfFile = req.file.filename
         if (pdfFile) {
             if (type === "idCard") {
-                await OwnerModel.findByIdAndUpdate(owner._id, { isCard: pdfFile })
+                if (owner.idCard !== "") {
+                    await deletePdf(owner.idCard)
+                }
+                await OwnerModel.findByIdAndUpdate(owner._id, { idCard: pdfFile })
                 return res.status(200).json({ message: "Upload!" })
             } else if (type === "apartmentRule") {
+                if (owner.apartmentRule !== "") {
+                    await deletePdf(owner.apartmentRule)
+                }
                 await OwnerModel.findByIdAndUpdate(owner._id, { apartmentRule: pdfFile })
                 return res.status(200).json({ message: "Upload!" })
             } else if (type === "applicationForPrivate") {
+                if (owner.applicationForPrivate !== "") {
+                    await deletePdf(owner.applicationForPrivate)
+                }
                 await OwnerModel.findByIdAndUpdate(owner._id, { applicationForPrivate: pdfFile })
                 return res.status(200).json({ message: "Upload!" })
             } else if (type === "applicationForLicense") {
+                if (owner.applicationForLicense !== "") {
+                    await deletePdf(owner.applicationForLicense)
+                }
                 await OwnerModel.findByIdAndUpdate(owner._id, { applicationForLicense: pdfFile })
                 return res.status(200).json({ message: "Upload!" })
             }
@@ -92,8 +104,9 @@ const removeOwner = async (req, res) => {
         if (!owner) {
             return res.status(400).json({ message: "Invalid request" })
         }
-        await OwnerModel.findByIdAndUpdate(owner._id, { approve: false })
-        await updateToOwner(userId, false)
+        await deletePdfArray([owner.idCard, owner.apartmentRule, owner.applicationForPrivate, owner.applicationForLicense])
+        await OwnerModel.findByIdAndDelete(owner._id)
+        // await updateToOwner(userId, false)
         return res.status(200).json({ message: "Remove!" })
     } catch (e) {
         console.log(e)
@@ -107,13 +120,25 @@ const checkIsRequestToOwner = async (req, res) => {
         if (role !== "customer") {
             return res.status(403).json({ message: "Not permission" })
         }
-        console.log(id)
         const owner = await checkIsOwnerExist(id)
         if (!owner) {
             return res.status(400).json({ message: "Invalid request" })
         }
-        console.log(owner)
-        return res.status(200).json({ message: "Exist" })
+        return res.status(200).send(owner)
+    } catch (e) {
+        console.log(e)
+        return res.status(500).json({ message: "Something went wrong" })
+    }
+}
+
+const getAllRequest = async (req, res) => {
+    try {
+        const { role } = req.user
+        if (role !== "admin") {
+            return res.status(403).json({ message: "Not permission" })
+        }
+        const owners = await OwnerModel.find({ approve: false })
+        return res.status(200).send(owners)
     } catch (e) {
         console.log(e)
         return res.status(500).json({ message: "Something went wrong" })
@@ -125,5 +150,6 @@ module.exports = {
     ownerUploadPdf,
     approveOwner,
     removeOwner,
-    checkIsRequestToOwner
+    checkIsRequestToOwner,
+    getAllRequest
 }

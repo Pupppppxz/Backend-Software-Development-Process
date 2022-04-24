@@ -17,7 +17,8 @@ const createNotification = async (req, res) => {
             ownerId,
             apartmentId,
             nameCustomer,
-            nameOwner: owner.firstName+owner.lastName,
+            nameApartment: apartmentName,
+            nameOwner: owner.firstName +' '+ owner.lastName,
             contactCustomer,
             contactOwner: owner.phone,
             roomType,
@@ -49,7 +50,7 @@ const createReplyMessage = async (req, res) => {
     try {
         const { role } = req.user
         const { notificationId, message } = req.body
-        const notification = await NotificationModel.findOne({ _id:notificationId })
+        const notification = await NotificationModel.findOne({ _id: notificationId })
         if (notification) {
             if (notification.statusAccept || notification.statusCancel) {
                 return res.status(400).json({ message: "Cannot modify" })
@@ -85,7 +86,7 @@ const createNewOfferTime = async (req, res) => {
         if (!apartmentId || !notificationId || !dateTrans || !timeTrans || !accept || !cancel) {
             return res.status(400).json({ message: "Please complete all field!" })
         }
-        const notification = await NotificationModel.findOne({ _id:notificationId })
+        const notification = await NotificationModel.findOne({ _id: notificationId })
         let message
         if (role === "owner" && !accept && !cancel) {
             message = `Reply new date from owner at ${dateTrans}, ${timeTrans}`
@@ -161,11 +162,33 @@ const getNotificationByCustomerId = async (req, res) => {
     }
 }
 
+const approveRejectNotification = async (req, res) => {
+    try {
+        const { role } = req.user
+        const { accept, cancel, notificationId } = req.body
+        if (role === "customer") {
+            return res.status(403).json({ message: "Not permission" })
+        }
+        const notification = await NotificationModel.findOne({ _id: notificationId })
+        if (!notification.statusCancel && accept) {
+            await NotificationModel.findByIdAndUpdate(notificationId, { statusAccept: true })
+            return res.status(200).json({message: "Accept!"})
+        } else if (!notification.statusAccept && cancel) {
+            await NotificationModel.findByIdAndUpdate(notificationId, { statusCancel: true })
+            return res.status(200).json({message: "Cancel!"})
+        }
+    } catch (e) {
+        console.log(e)
+        return res.status(500).json({ message: "Something went wrong" })
+    }
+}
+
 module.exports = {
     createNotification,
     createReplyMessage,
     createNewOfferTime,
     getAllNotification,
     getAllNotificationByOwnerId,
-    getNotificationByCustomerId
+    getNotificationByCustomerId,
+    approveRejectNotification
 }

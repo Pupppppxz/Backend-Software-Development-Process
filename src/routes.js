@@ -57,11 +57,9 @@ Router.get("/review-all", validateJWT, ReviewController.getAllReview)
 
 
 Router.get("/noti-admin", validateJWT, NotificationController.getAllNotification)
-
 Router.get("/noti-customer", validateJWT, NotificationController.getNotificationByCustomerId)
 Router.get("/noti-owner", validateJWT, NotificationController.getAllNotificationByOwnerId)
-
-// Router.post("/noti-owner", validateJWT, NotificationController.getAllNotificationByOwnerId)
+Router.put("/noti-owner", validateJWT, NotificationController.approveRejectNotification)
 Router.post("/noti-new", validateJWT, NotificationController.createNotification)
 Router.post("/noti-reply", validateJWT, NotificationController.createReplyMessage)
 Router.post("/noti-offer", validateJWT, NotificationController.createNewOfferTime)
@@ -73,5 +71,6 @@ Router.get("/owner", validateJWT, OwnerController.checkIsRequestToOwner)
 Router.put("/owner", validateJWT, singlePdfUpload, OwnerController.ownerUploadPdf)
 Router.put("/owner-approve", validateJWT, OwnerController.approveOwner)
 Router.post("/owner-remove", validateJWT, OwnerController.removeOwner)
+Router.get("/owner-admin", validateJWT, OwnerController.getAllRequest)
 
 module.exports = Router;

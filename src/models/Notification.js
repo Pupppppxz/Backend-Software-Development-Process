@@ -13,6 +13,10 @@ const NotificationSchema = mongoose.Schema({
         type: mongoose.Types.ObjectId,
         required: true
     },
+    nameApartment: {
+        type: String,
+        required: true
+    },
     nameCustomer: {
         type: String,
         required: true
