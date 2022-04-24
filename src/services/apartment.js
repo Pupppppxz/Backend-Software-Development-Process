@@ -15,10 +15,10 @@ const checkIsExist = async (name) => {
 };
 
 const validateApartment = async (aId, uId, role) => {
-  const apartment = await ApartmentModel.findOne({ id: aId });
+  const apartment = await ApartmentModel.findOne({ _id: aId });
   if (
     role !== "owner" ||
-    apartment.ownerId !== mongoose.Types.ObjectId(uId)
+    !apartment.ownerId.equals(mongoose.Types.ObjectId(uId))
   ) {
     return false;
   }
@@ -37,15 +37,21 @@ const updateApartmentFee = async (aId, price) => {
 }
 
 const deleteApartmentImage = async (image) => {
-  fs.unlinkSync(`./uploads/${image}`, function (err) {
-    if (err && err.code == "ENOENT") {
-      console.log("file does not exist")
-    } else if (err) {
-      console.log("error to remove")
-    } else {
-      console.log("remove")
-    }
-  })
+  try {
+    fs.unlinkSync(`./uploads/${image}`, function (err) {
+      if (err && err.code == "ENOENT") {
+        console.log("file does not exist")
+      } else if (err) {
+        console.log("error to remove")
+      } else {
+        console.log("remove")
+      }
+    })
+    return
+  } catch (e) {
+    console.log(e)
+    return
+  }
 }
 
 const updateApartmentSave = async (val) => {
@@ -56,21 +62,10 @@ const updateApartmentSave = async (val) => {
       locationY: val.locationY,
       dormitoryType: val.dormitoryType,
       contact: val.contact,
-      option: {
-        internet: val.internet,
-        cctv: val.cctv,
-        keyCard: val.keyCard,
-        laundry: val.laundry,
-        carPark: val.carPark,
-        coinWashingMachine: val.coinWashingMachine
-      },
+      option: val.option,
       alley: val.alley
     })
-      .then(() => true)
-      .catch(e => {
-        console.log(e)
-        return false
-      })
+    return true
   } catch (e) {
     console.log(e)
     return false

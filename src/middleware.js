@@ -65,7 +65,7 @@ const fileFilter = (req, file, cb) => {
 
 const pdfFilter = (req, file, cb) => {
   if (
-    file.mimetype == "file/pdf"
+    file.mimetype == "application/pdf"
   ) {
     cb(null, true);
   } else {

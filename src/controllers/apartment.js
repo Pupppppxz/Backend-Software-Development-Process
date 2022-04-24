@@ -1,6 +1,6 @@
 const { ApartmentModel } = require("../models");
 const { checkIsExist, validateApartment, deleteApartmentImage, updateApartmentSave } = require("../services/apartment.js");
-const { findRoomByApartmentId } = require("../services/room")
+const { findRoomByApartmentId, deleteRoomByApartmentId } = require("../services/room")
 
 const createController = async (req, res) => {
   try {
@@ -9,8 +9,6 @@ const createController = async (req, res) => {
     if (role !== "owner") {
       return res.status(401).json({ message: "Cannot create apartment" });
     }
-    console.log("file = ", req.file)
-    console.log("body = ", req.body)
     const isExist = await checkIsExist(newObj.name);
     if (isExist) {
       return res.status(400).json({ message: "apartment already exist" });
@@ -84,6 +82,10 @@ const deleteController = async (req, res) => {
     );
     if (!validate) {
       return res.status(400).json({ message: "Cannot delete apartment" });
+    }
+    const deleteRoom = await deleteRoomByApartmentId(req.body.id)
+    if (!deleteRoom) {
+      return res.status(400).json({ message: "Error while delete" })
     }
     await deleteApartmentImage(validate.imgAptSrc)
     await ApartmentModel.findByIdAndDelete(req.body.id);

@@ -68,7 +68,7 @@ const findNumberOfRoomInApartment = async (aId) => {
 const deleteRoomImage = async (image) => {
   image.map(val => {
     console.log(val.src)
-    fs.unlinkSync(`./uploads/${val.src}`, function(err) {
+    fs.unlinkSync(`./uploads/${val.src}`, function (err) {
       if (err && err.code == "ENOENT") {
         console.log("file does not exist")
       } else if (err) {
@@ -84,13 +84,7 @@ const updateRoomDetail = async (roomId, newObj) => {
   try {
     await RoomModel.findByIdAndUpdate(roomId, {
       nameType: newObj.nameType,
-      air: newObj.air,
-      refrigerator: newObj.refrigerator,
-      fan: newObj.fan,
-      television: newObj.television,
-      waterHeater: newObj.waterHeater,
-      washingMachine: newObj.washingMachine,
-      cookingStove: newObj.cookingStove,
+      roomOptions: newObj.roomOptions,
       leaseAgreement: newObj.leaseAgreement,
       cashPledge: newObj.cashPledge,
       electricCost: newObj.electricCost,
@@ -98,11 +92,20 @@ const updateRoomDetail = async (roomId, newObj) => {
       price: newObj.price,
       area: newObj.area
     })
-    .then(() => true)
-    .catch(e => {
-      console.log(e)
-      return false
+    return true
+  } catch (e) {
+    console.log(e)
+    return false
+  }
+}
+
+const deleteRoomByApartmentId = async (apartmentId) => {
+  try {
+    const rooms = await RoomModel.find({ apartmentId: apartmentId })
+    rooms.map(async (val) => {
+      await RoomModel.findByIdAndDelete(val._id)
     })
+    return true
   } catch (e) {
     console.log(e)
     return false
@@ -116,5 +119,6 @@ module.exports = {
   findRoomByApartmentId,
   findNumberOfRoomInApartment,
   deleteRoomImage,
-  updateRoomDetail
+  updateRoomDetail,
+  deleteRoomByApartmentId
 };

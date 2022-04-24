@@ -17,7 +17,7 @@ const createNotification = async (req, res) => {
             ownerId,
             apartmentId,
             nameCustomer,
-            nameOwner: owner.name,
+            nameOwner: owner.firstName+owner.lastName,
             contactCustomer,
             contactOwner: owner.phone,
             roomType,
@@ -49,7 +49,7 @@ const createReplyMessage = async (req, res) => {
     try {
         const { role } = req.user
         const { notificationId, message } = req.body
-        const notification = await NotificationModel.findOne({ notificationId })
+        const notification = await NotificationModel.findOne({ _id:notificationId })
         if (notification) {
             if (notification.statusAccept || notification.statusCancel) {
                 return res.status(400).json({ message: "Cannot modify" })
@@ -85,7 +85,7 @@ const createNewOfferTime = async (req, res) => {
         if (!apartmentId || !notificationId || !dateTrans || !timeTrans || !accept || !cancel) {
             return res.status(400).json({ message: "Please complete all field!" })
         }
-        const notification = await NotificationModel.findOne({ notificationId })
+        const notification = await NotificationModel.findOne({ _id:notificationId })
         let message
         if (role === "owner" && !accept && !cancel) {
             message = `Reply new date from owner at ${dateTrans}, ${timeTrans}`
@@ -147,10 +147,25 @@ const getAllNotificationByOwnerId = async (req, res) => {
     }
 }
 
+const getNotificationByCustomerId = async (req, res) => {
+    try {
+        const { role, id: customerId } = req.user
+        if (role !== "customer") {
+            return res.status(403).json({ message: "Not permission" })
+        }
+        const notification = await NotificationModel.find({ customerId })
+        return res.status(200).send(notification)
+    } catch (e) {
+        console.log(e)
+        return res.status(500).json({ message: "Something went wrong" })
+    }
+}
+
 module.exports = {
     createNotification,
     createReplyMessage,
     createNewOfferTime,
     getAllNotification,
-    getAllNotificationByOwnerId
+    getAllNotificationByOwnerId,
+    getNotificationByCustomerId
 }

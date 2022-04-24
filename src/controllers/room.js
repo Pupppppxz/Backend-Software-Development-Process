@@ -100,7 +100,9 @@ const updateRoomImageController = async (req, res) => {
     if (!validated) {
       return res.status(403).json({ message: "Cannot modify" });
     }
-    let newRoomImage = oldImageUrl.split("$$").map((val, index) => ({
+    let oldImageSplit = oldImageUrl.split("$$")
+    const imageForDelete = validated.img.filter(item => !oldImageSplit.includes(item.src))
+    let newRoomImage = oldImageSplit.map((val, index) => ({
       id: index,
       src: val
     }))
@@ -109,10 +111,11 @@ const updateRoomImageController = async (req, res) => {
       req.files.map((val, index) => {
         newRoomImage.push({
           id: index + length,
-          src: val.path
+          src: "rooms/" + val.filename
         })
       })
     }
+    await deleteRoomImage(imageForDelete)
     await RoomModel.findByIdAndUpdate(roomId, { img: newRoomImage });
     return res.status(200).json({ message: "Updated" });
   } catch (e) {

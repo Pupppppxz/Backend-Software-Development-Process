@@ -29,6 +29,7 @@ Router.put("/password", validateJWT, UserController.updatePassword)
 // apartment -- owner
 Router.post("/apmnt", validateJWT, singleImageUpload, ApartmentController.createController);
 Router.put("/apmnt", validateJWT, ApartmentController.updateController);
+Router.put("/apmnt-image", validateJWT, singleImageUpload, ApartmentController.updateImageController);
 Router.delete("/apmnt", validateJWT, ApartmentController.deleteController);
 Router.get("/apmnt-owner", validateJWT, ApartmentController.getOwnerApartment);
 Router.get("/apmnt-owner-room", validateJWT, ApartmentController.getOwnerApartmentAndRoom);
@@ -42,7 +43,7 @@ Router.get("/apmnt-all", validateJWT, ApartmentController.getAllController);
 Router.post("/room", validateJWT, uploadArrayImage, RoomController.createRoomTypeController)
 Router.put("/room", validateJWT, RoomController.updateRoomTypeController)
 Router.delete("/room", validateJWT, RoomController.deleteRoomTypeController)
-Router.put("/room", validateJWT, uploadArrayImage, RoomController.updateRoomImageController)
+Router.put("/room-image", validateJWT, uploadArrayImage, RoomController.updateRoomImageController)
 Router.post("/room-insert", validateJWT, RoomController.insertRoomController)
 Router.delete("/room-delete", validateJWT, RoomController.deleteRoomController)
 Router.put("/room-update", validateJWT, RoomController.updateAvailableRoomController)
@@ -52,16 +53,23 @@ Router.post("/review", validateJWT, ReviewController.createReview)
 Router.get("/review/:apartmentId", validateJWT, ReviewController.getReviewByApartmentId)
 Router.delete("/review", validateJWT, ReviewController.deleteReview)
 Router.put("/review", validateJWT, ReviewController.updateReview)
-Router.get("review-all", validateJWT, ReviewController.getAllReview)
+Router.get("/review-all", validateJWT, ReviewController.getAllReview)
+
 
 Router.get("/noti-admin", validateJWT, NotificationController.getAllNotification)
-Router.post("/noti-owner", validateJWT, NotificationController.getAllNotificationByOwnerId)
-Router.post("/noti-new", validateJWT, NotificationController.createNewOfferTime)
+
+Router.get("/noti-customer", validateJWT, NotificationController.getNotificationByCustomerId)
+Router.get("/noti-owner", validateJWT, NotificationController.getAllNotificationByOwnerId)
+
+// Router.post("/noti-owner", validateJWT, NotificationController.getAllNotificationByOwnerId)
+Router.post("/noti-new", validateJWT, NotificationController.createNotification)
 Router.post("/noti-reply", validateJWT, NotificationController.createReplyMessage)
 Router.post("/noti-offer", validateJWT, NotificationController.createNewOfferTime)
+// Router.post("/noti-customer", validateJWT, NotificationController.getNotificationByCustomerId)
 
 // request to owner
 Router.post("/owner", validateJWT, OwnerController.requestToBeOwner)
+Router.get("/owner", validateJWT, OwnerController.checkIsRequestToOwner)
 Router.put("/owner", validateJWT, singlePdfUpload, OwnerController.ownerUploadPdf)
 Router.put("/owner-approve", validateJWT, OwnerController.approveOwner)
 Router.post("/owner-remove", validateJWT, OwnerController.removeOwner)

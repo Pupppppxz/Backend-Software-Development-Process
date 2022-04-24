@@ -7,7 +7,8 @@ const setMessageToRead = async (message, role) => {
                 val.isRead = true
             }
         })
-        console.log(message)
+        // console.log(message)
+        return message
         
     } catch (e) {
         return

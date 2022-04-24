@@ -101,9 +101,29 @@ const removeOwner = async (req, res) => {
     }
 }
 
+const checkIsRequestToOwner = async (req, res) => {
+    try {
+        const { role, id } = req.user
+        if (role !== "customer") {
+            return res.status(403).json({ message: "Not permission" })
+        }
+        console.log(id)
+        const owner = await checkIsOwnerExist(id)
+        if (!owner) {
+            return res.status(400).json({ message: "Invalid request" })
+        }
+        console.log(owner)
+        return res.status(200).json({ message: "Exist" })
+    } catch (e) {
+        console.log(e)
+        return res.status(500).json({ message: "Something went wrong" })
+    }
+}
+
 module.exports = {
     requestToBeOwner,
     ownerUploadPdf,
     approveOwner,
-    removeOwner
+    removeOwner,
+    checkIsRequestToOwner
 }

@@ -58,7 +58,6 @@ const login = async (req, res) => {
         .json({ message: "Username or Password incorrect" });
     }
     const isMatch = await comparePassword(password, user.password);
-    console.log(isMatch)
     if (isMatch) {
       if (checkIsTokenExpired(user.token)) {
         const payload = await createPayload(user)
