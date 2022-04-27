@@ -18,7 +18,7 @@ const createNotification = async (req, res) => {
             apartmentId,
             nameCustomer,
             nameApartment: apartmentName,
-            nameOwner: owner.firstName +' '+ owner.lastName,
+            nameOwner: owner.firstName + ' ' + owner.lastName,
             contactCustomer,
             contactOwner: owner.phone,
             roomType,
@@ -170,12 +170,34 @@ const approveRejectNotification = async (req, res) => {
             return res.status(403).json({ message: "Not permission" })
         }
         const notification = await NotificationModel.findOne({ _id: notificationId })
-        if (!notification.statusCancel && accept) {
+        if (accept && cancel) {
+            await NotificationModel.findByIdAndUpdate(notificationId, { statusAccept: true, statusCancel: true })
+            return res.status(200).json({ message: "Cancel after Accept !" })
+        }
+        else if (!notification.statusCancel && accept) {
             await NotificationModel.findByIdAndUpdate(notificationId, { statusAccept: true })
-            return res.status(200).json({message: "Accept!"})
+            return res.status(200).json({ message: "Accept!" })
         } else if (!notification.statusAccept && cancel) {
             await NotificationModel.findByIdAndUpdate(notificationId, { statusCancel: true })
-            return res.status(200).json({message: "Cancel!"})
+            return res.status(200).json({ message: "Cancel!" })
+        }
+    } catch (e) {
+        console.log(e)
+        return res.status(500).json({ message: "Something went wrong" })
+    }
+}
+
+const userCancelNotification = async (req, res) => {
+    try {
+        const { role } = req.user
+        const { accept, cancel, notificationId } = req.body
+        if (role === "owner") {
+            return res.status(403).json({ message: "Not permission" })
+        }
+        const notification = await NotificationModel.findOne({ _id: notificationId })
+        if (accept && cancel && notification.statusAccept) {
+            await NotificationModel.findByIdAndUpdate(notificationId, { statusAccept: true, statusCancel: true })
+            return res.status(200).json({ message: "Cancel after Accept !" })
         }
     } catch (e) {
         console.log(e)
@@ -190,5 +212,6 @@ module.exports = {
     getAllNotification,
     getAllNotificationByOwnerId,
     getNotificationByCustomerId,
-    approveRejectNotification
+    approveRejectNotification,
+    userCancelNotification
 }

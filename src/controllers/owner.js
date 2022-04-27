@@ -3,7 +3,8 @@ const { checkIsOwnerExist, updateToOwner, deletePdf, deletePdfArray } = require(
 
 const requestToBeOwner = async (req, res) => {
     try {
-        const { role, id: userId } = req.user
+        console.log(req.user)
+        const { role, id: userId, fullname: nameUser } = req.user
         if (role !== "customer") {
             return res.status(403).json({ message: "Not permission" })
         }
@@ -12,7 +13,8 @@ const requestToBeOwner = async (req, res) => {
             return res.status(400).json({ message: "Already exist" })
         }
         const newOwner = new OwnerModel({
-            userId
+            userId,
+            nameUser
         })
         newOwner
             .save()
@@ -106,7 +108,7 @@ const removeOwner = async (req, res) => {
         }
         await deletePdfArray([owner.idCard, owner.apartmentRule, owner.applicationForPrivate, owner.applicationForLicense])
         await OwnerModel.findByIdAndDelete(owner._id)
-        // await updateToOwner(userId, false)
+        await updateToOwner(userId, false)
         return res.status(200).json({ message: "Remove!" })
     } catch (e) {
         console.log(e)
@@ -117,6 +119,7 @@ const removeOwner = async (req, res) => {
 const checkIsRequestToOwner = async (req, res) => {
     try {
         const { role, id } = req.user
+        console.log("role = " + role)
         if (role !== "customer") {
             return res.status(403).json({ message: "Not permission" })
         }
@@ -145,11 +148,26 @@ const getAllRequest = async (req, res) => {
     }
 }
 
+const getAllOwner = async (req, res) => {
+    try {
+        const { role } = req.user
+        if (role !== "admin") {
+            return res.status(403).json({ message: "Not permission" })
+        }
+        const owners = await OwnerModel.find({ approve: true })
+        return res.status(200).send(owners)
+    } catch (e) {
+        console.log(e)
+        return res.status(500).json({ message: "Something went wrong" })
+    }
+}
+
 module.exports = {
     requestToBeOwner,
     ownerUploadPdf,
     approveOwner,
     removeOwner,
     checkIsRequestToOwner,
-    getAllRequest
+    getAllRequest,
+    getAllOwner
 }

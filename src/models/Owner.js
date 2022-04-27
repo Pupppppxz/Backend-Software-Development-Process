@@ -5,6 +5,10 @@ const OwnerSchema = mongoose.Schema({
         type: mongoose.Types.ObjectId,
         required: true
     },
+    nameUser: {
+        type: String,
+        required: true,
+    },
     approve: {
         type: Boolean,
         default: false

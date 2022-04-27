@@ -55,7 +55,7 @@ Router.delete("/review", validateJWT, ReviewController.deleteReview)
 Router.put("/review", validateJWT, ReviewController.updateReview)
 Router.get("/review-all", validateJWT, ReviewController.getAllReview)
 
-
+Router.put("/noti-customer", validateJWT, NotificationController.userCancelNotification)
 Router.get("/noti-admin", validateJWT, NotificationController.getAllNotification)
 Router.get("/noti-customer", validateJWT, NotificationController.getNotificationByCustomerId)
 Router.get("/noti-owner", validateJWT, NotificationController.getAllNotificationByOwnerId)
@@ -66,6 +66,7 @@ Router.post("/noti-offer", validateJWT, NotificationController.createNewOfferTim
 // Router.post("/noti-customer", validateJWT, NotificationController.getNotificationByCustomerId)
 
 // request to owner
+Router.get("/owner-all", validateJWT, OwnerController.getAllOwner)
 Router.post("/owner", validateJWT, OwnerController.requestToBeOwner)
 Router.get("/owner", validateJWT, OwnerController.checkIsRequestToOwner)
 Router.put("/owner", validateJWT, singlePdfUpload, OwnerController.ownerUploadPdf)

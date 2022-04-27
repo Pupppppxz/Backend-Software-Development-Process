@@ -28,10 +28,10 @@ const validateApartment = async (aId, uId, role) => {
 const updateApartmentFee = async (aId, price) => {
   const apartment = await ApartmentModel.findOne({ _id: aId })
   if (apartment.rentalFeeMin > price || apartment.rentalFeeMin === 0) {
-    return ApartmentModel.findByIdAndUpdate(aId, { rentalFeeMin: price })
+    await ApartmentModel.findByIdAndUpdate(aId, { rentalFeeMin: price })
   }
-  if (apartment.rentalFeeMax < price) {
-    return ApartmentModel.findByIdAndUpdate(aId, { rentalFeeMax: price })
+  if (apartment.rentalFeeMax < price || apartment.rentalFeeMax === 0) {
+    await ApartmentModel.findByIdAndUpdate(aId, { rentalFeeMax: price })
   }
   return
 }
